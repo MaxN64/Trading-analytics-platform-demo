@@ -1,277 +1,100 @@
-MES Calc — Trade Journal, Analytics, and Risk Management
+# MES Calc — Trading Journal & Analytics Platform
 
-End-to-end trading app: React (CRA) on the frontend and Node.js/Express + MongoDB (Mongoose) + GridFS on the backend. Supports importing trades from VolFix CSV, storing attachments (images/audio), calculating metrics, and condition-based filters.
+**A full-stack trading journal for importing VolFix trade records, exploring performance, managing trade attachments and calculating risk metrics.**
 
-/ (repository)
-├─ mes-calc-frontend/ — React client (CRA)
-└─ mes-calc-backend/ — API on Express + MongoDB (GridFS) + Mongoose
+**Language:** English · [Deutsch](README.de.md) · [Previous technical documentation](README.legacy.md)
 
-What matters to an employer
+**Stack:** React 19 · Recharts · Lightweight Charts · Node.js · Express · MongoDB / Mongoose · GridFS · csv-parse
 
-Business value: trade journaling, visual analytics, risk control, fast import from VolFix (CSV), storage of trade artifacts (screenshots, audio notes) — all in one place.
+> **Status:** Portfolio/demo application, not a licensed brokerage or a production-grade multi-user financial platform. Authentication is demo-oriented; the backend can identify users by the `X-User-Id` request header. No trading performance or financial returns are guaranteed.
 
-Tech stack:
-Front: React 19, CRA, React Router, Axios, Recharts, Lightweight-Charts.
-Back: Node.js/Express, Mongoose, GridFS, Multer, csv-parse.
+## What the application demonstrates
 
-Architecture: REST API, file storage via GridFS, parameterized CORS, health probe, production build of the frontend can be served by the backend.
+- Import VolFix CSV trade history with delimiter/date/number normalization.
+- Preview imports with a **dry-run** option and track imported, updated or skipped records.
+- Analyze trading results with dashboards, equity curves and visual metrics.
+- Filter by date, time, outcome, trade conditions and tags.
+- Store chart screenshots and voice notes as MongoDB GridFS attachments.
+- Work with risk, position-size and contract-oriented calculation views.
 
-Data import: robust VolFix CSV parsing (auto-detect delimiter, normalization of numbers/dates, dry-run, update mode).
+## Screenshots
 
-Models & indexes: well-designed Trade schema with indexes (by user/date/net result), Attachment with metadata and linkage to GridFS.
+Selected **existing** images from the repository. They have not been verified against the latest running build; review any personal or real trading data before using them in a public portfolio.
 
-Practices: centralized error handling, simple (but extensible) auth, separation of concerns by layers.
+![MES Calc interface preview 1](mes-calc-frontend/public/docs/210016.png)
 
+![MES Calc interface preview 2](mes-calc-frontend/public/docs/210037.png)
 
+More existing screenshots: [`mes-calc-frontend/public/docs/`](mes-calc-frontend/public/docs/).
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210016.png)
+## Architecture
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210037.png)
+```mermaid
+flowchart LR
+    A[React / CRA] -->|REST API| B[Express :3001]
+    B --> C[Mongoose data models]
+    C --> D[(MongoDB trade data)]
+    B --> E[GridFS attachments]
+    F[VolFix CSV] --> B
+    B --> G[Trade analytics / metrics]
+```
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210059.png)
+| Layer | Code |
+| --- | --- |
+| React pages, charts and widgets | `mes-calc-frontend/src/` |
+| Frontend API client | `mes-calc-frontend/src/lib/api.js` |
+| Express entry point | `mes-calc-backend/server/src/index.js` |
+| Trades / attachments / imports | `mes-calc-backend/server/src/routes/` |
+| Database models and indexes | `mes-calc-backend/server/src/models/` |
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210115.png)
+## Run locally
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210128.png)
+**Prerequisites:** Node.js, npm and a working MongoDB server. Use two terminals from the repository root.
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210139.png)
+**Backend:**
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210150.png)
+```bash
+cd mes-calc-backend
+npm install
+npm run dev
+```
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210233.png)
+Configure a local `mes-calc-backend/.env` as needed, with `MONGO_URI=mongodb://localhost:27017/mes_calc`, `PORT=3001`, and `CORS_ORIGIN=http://localhost:3000`. Do not commit credentials. Health: [http://localhost:3001/health](http://localhost:3001/health).
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210249.png)
+**Frontend:**
 
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210302.png)
-
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210327.png)
-
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210405.png)
-
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210420.png)
-
-![Превью проекта](https://github.com/MaxN64/PROJECT-Trading-analytics-platform-demo/blob/master/mes-calc-frontend/public/docs/210504.png)
-
-1) Frontend — mes-calc-frontend
-Stack & dependencies
-
-package.json:
-
-React ^19.1.1, react-dom ^19.1.1
-
-react-scripts 5.0.1 (Create React App)
-
-react-router-dom ^7.8.2
-
-@reduxjs/toolkit ^2.8.2, react-redux ^9.2.0 (the project has state hooks; Redux Toolkit can be easily plugged in if needed)
-
-axios ^1.11.0
-
-recharts ^3.1.2, lightweight-charts ^5.0.8
-
-@testing-library/*, web-vitals
-
-API configuration (important)
-
-The base URL is resolved by priority — any method works:
-
-window.APP_CONFIG.apiBase (if set globally in index.html),
-
-REACT_APP_API_URL (CRA) from .env,
-
-VITE_API_URL (for future/compat),
-
-default: http://localhost:3001.
-
-File: src/lib/api.js.
-
-You can also control the trades fetch limit:
-
-REACT_APP_TRADES_LIMIT (CRA) or VITE_TRADES_LIMIT — see src/hooks/useTradesApi.js.
-
-Key UI features
-
-Trade list with filters: dates, hours, outcome (win/loss), conditions/tags.
-
-Analytics cards: Equity Curve, Weekly PnL/Performance, Summary Totals, Visual Metrics, Fib Entry Planner, etc.
-
-Position Calculator, Day Risk, contract presets.
-
-Embedded media: image preview, audio notes.
-
-Import from VolFix (CSV) via UI, with results display (imported/updated/skipped).
-
-Economic calendar and chart widgets (including dual-charts embed).
-
-Easy adaptation for Electron (in production the frontend can be served by the backend).
-
-Structure (shortened)
-src/
-├─ App.js, App.module.css
-├─ components/            # Cards, Charts, Analytics, Modals, Header/Footer
-├─ hooks/                 # useTradesApi, useSettings, useDayRisk, ...
-├─ lib/                   # api.js, metrics.js, contracts.js
-├─ pages/                 # AiPlanPage, TvDualPage
-└─ index.js, index.css
-
-Run
+```bash
 cd mes-calc-frontend
 npm install
-npm start         # CRA dev server: http://localhost:3000
+npm start
+```
 
-# build for production:
-npm run build
+Open [http://localhost:3000](http://localhost:3000). The frontend defaults to `http://localhost:3001` for API requests; `REACT_APP_API_URL` can override it.
 
+These commands come from existing project scripts and were **not executed** during README preparation.
 
-A .env file is already in the project — by default REACT_APP_API_URL=http://localhost:3001.
+## CSV import example
 
-2) Backend — mes-calc-backend
-Stack & dependencies
+The VolFix importer is implemented as `POST /api/integrations/volfix/import`. It accepts file uploads and supports `dry=1` for preview and `update=1` for existing records matched by external identifiers. Use **synthetic trade examples** for any demonstration.
 
-package.json:
+## Engineering decisions and limitations
 
-express ^4.21.2, cors ^2.8.5, cookie-parser ^1.4.7
+- Separate React UI, Express routes, Mongoose models and GridFS media storage.
+- CSV normalization and preview/update paths demonstrate ingestion of imperfect external data.
+- Risk metrics and charts are analytical features, not trading recommendations.
+- The current user-identification mechanism is for demo scenarios and must **not** be described as secure multi-tenant authentication.
+- MongoDB must be configured locally; no verified public deployment or CI run is claimed.
 
-mongoose ^8.18.0, mongodb ^6.19.0 (GridFS)
+## Privacy review before wider distribution
 
-multer ^1.4.5-lts.1 (upload)
+**Important:** This public repository currently includes historic trade CSV files and documents in its source tree. Verify that none contains private account data, real transaction identifiers, personal documents or images before promoting it. Removing files from the latest commit alone does not erase historical copies from Git history.
 
-csv-parse ^5.6.0 (VolFix CSV import)
+## Suggested recruiter demo
 
-dotenv ^16.6.1
+Import a synthetic CSV in dry-run mode → review normalization results → import test data → open analytics → filter trades → attach a synthetic screenshot → explain the MongoDB + GridFS design.
 
-scripts: dev, cleanup-orphans
+## Detailed docs
 
-Configuration & environment variables
+Original endpoint inventory and configuration notes: [`README.legacy.md`](README.legacy.md).
 
-.env (exists at the backend root):
-
-PORT=3001
-MONGO_URI=mongodb://localhost:27017/mes_calc
-CORS_ORIGIN=http://localhost:3000
-# Additionally supported:
-# FRONTEND_DEV_PORT=3000      # for CORS in dev (if you change the frontend port)
-# FRONTEND_DIST=/abs/path     # if you want to serve the built frontend as static
-
-
-CORS: in dev, allow the frontend origin; in prod, if FRONTEND_DIST is set, CORS can be opened “wider”.
-
-Health check: GET /health returns { ok: true }.
-
-Structure
-server/
-├─ src/
-│  ├─ index.js                # server config, CORS, static frontend in prod
-│  ├─ db.js                   # connectDB(), GridFS buckets (images/audio)
-│  ├─ middleware/
-│  │  ├─ auth.js              # attachUser: takes userId from X-User-Id (demo)
-│  │  └─ error.js             # centralized error handler
-│  ├─ models/
-│  │  ├─ Trade.js             # trade schema + indexes
-│  │  └─ Attachment.js        # link GridFS files to trades
-│  └─ routes/
-│     ├─ trades.js            # CRUD + batch-metrics
-│     ├─ attachments.js       # upload/stream/delete (GridFS)
-│     └─ volfix.js            # VolFix CSV import
-└─ scripts/
-   └─ cleanup-orphans.js      # remove orphaned files from GridFS
-
-Data models (shortened)
-
-Trade (server/src/models/Trade.js):
-userId, time fields (createdAt, updatedAt, localHour, nyHour), trade results (isProfit, pnl, fee, netR, drawdown, …), external key bindings (openOrderId, closeOrderId, externalKey), plus a set of metric fields vj_* (equivalent from Volume Journal).
-Indexes: { userId, externalKey } (unique, sparse), { userId, createdAt }, { userId, netR }.
-
-Attachment (server/src/models/Attachment.js):
-userId, tradeId, kind: image|audio|file, mimeType, size, durationMs (for audio), fileId (GridFS ID), name.
-
-REST API (key)
-
-Health
-
-GET /health → { ok: true }
-
-Trades (/api/trades, file routes/trades.js)
-
-GET /api/trades
-Parameters: dateFrom, dateTo, hourFrom, hourTo, outcome=all|win|loss, conditions, tags, matchAll=0|1, limit (≤500), skip.
-
-POST /api/trades — create a trade.
-
-PATCH /api/trades/:id — partial update (whitelist of fields).
-
-DELETE /api/trades/:id — delete a trade.
-
-POST /api/trades/batch-metrics — batch save daily metrics:
-
-{
-  "dateKey": "YYYY-MM-DD",
-  "mode": "FADE|BREAKOUT",
-  "items": [ { "id": "<tradeId>", "patch": { /* subset of metric fields */ } } ]
-}
-
-
-GET /api/trades/:id/attachments/stats — return attachment summary (count of unique images, etc.).
-
-Attachments / GridFS (/api, file routes/attachments.js)
-
-Upload (universal):
-POST /api/trades/:tradeId/attachments (file field, multipart/form-data) — auto-detects type by mimetype.
-
-Targeted uploads:
-POST /api/trades/:tradeId/attachments/images — images only; max 4 per trade.
-POST /api/trades/:tradeId/attachments/audio — a single audio note per trade (replaces previous).
-
-Streams (download/view):
-GET /api/attachments/stream/:id — serve any file by ID (auto-selects bucket).
-GET /api/attachments/images/:id — serve an image.
-GET /api/attachments/audio/:id — serve audio.
-
-Delete image:
-DELETE /api/trades/:tradeId/attachments/images/:fileId.
-
-VolFix CSV Import (/api/integrations/volfix/import, file routes/volfix.js)
-
-Method: POST (accepts multipart/form-data with file file or application/json with array rows).
-
-Query params:
-instrument=ES (default),
-tickSize=0.25, tickValue=12.5,
-dry=1 (dry-run, does not write to DB),
-update=1 (update mode by externalKey=openOrderId).
-
-Features:
-auto-detect CSV delimiter ; / , .,
-normalization of monetary/numeric fields ($, ,, -),
-unifying date formats (dd.MM.yy(yy), dd/MM/yy(yy), yyyy-MM-dd, with/without seconds).
-Response contains counters imported/updated/skipped and sample reasons for skips.
-
-Authorization
-
-Demonstration: attachUser middleware takes the ID from X-User-Id header; if absent — a constant demo ID is used.
-For production, it’s intended to replace this with JWT/OIDC and full permissions/limits.
-
-Local run (together)
-npm install
-# check .env (port/MongoDB URI/CORS)
-npm run dev
-# → API listens on http://localhost:3001
-
-Key endpoints
-
-GET /health
-
-GET/POST/PATCH/DELETE /api/trades
-
-POST /api/trades/batch-metrics
-
-POST /api/trades/:id/attachments[/(images|audio)]
-
-GET /api/attachments/(images|audio|stream)/:id
-
-DELETE /api/trades/:id/attachments/images/:fileId
-
-POST /api/integrations/volfix/import?dry=1&update=1&instrument=ES&tickSize=0.25&tickValue=12.5
-
-
-
+*Portfolio focus: data ingestion, analytics dashboards, REST APIs, NoSQL modeling, GridFS and full-stack engineering.*
